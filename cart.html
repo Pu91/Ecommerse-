@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart - Pharmacy Store</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <style>
+    /* ---------- CART / CUT PAGE ---------- */
+#cart-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+  margin: 20px;
+}
+
+.medicine-card {
+  background: #fff;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.medicine-card h3 {
+  font-size: 18px;
+  margin-bottom: 5px;
+  color: #2d6cdf;
+}
+
+.medicine-card p {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.medicine-card button {
+  padding: 8px 12px;
+  border: none;
+  background: #dc3545;
+  color: white;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.medicine-card button:hover {
+  background: #c82333;
+}
+
+/* ---------- TOTAL PRICE ---------- */
+#total-price {
+  text-align: right;
+  font-size: 18px;
+  font-weight: bold;
+  margin: 15px 20px;
+  color: #28a745;
+}
+
+/* ---------- CHECKOUT FORM ---------- */
+.checkout-form {
+  max-width: 450px;
+  margin: 20px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+.checkout-form h2 {
+  text-align: center;
+  margin-bottom: 15px;
+  color: #2d6cdf;
+}
+
+.checkout-form input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.checkout-form button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  background: #007bff;
+  color: white;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+}
+
+.checkout-form button:hover {
+  background: #0056b3;
+}
+
+.success {
+  text-align: center;
+  color: green;
+  margin-top: 10px;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media screen and (max-width: 768px) {
+  #cart-list {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-form {
+    margin: 15px;
+  }
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- Header/Navbar -->
+  <header>
+    <h1>Pharmacy Store - Cart</h1>
+    <nav>
+      <a href="/pharmasist /user/index.html">Home</a>
+      <a href="/pharmasist /user/cart.html">Cart</a>
+      <a href="/pharmasist /user/appointment.html">Appointments</a>
+    </nav>
+  </header>
+
+  <!-- Cart Items -->
+  <main>
+    <h2>Items in Your Cart</h2>
+    <div id="cart-list" class="grid"></div>
+    <h3 id="total-price">Total: ₹0</h3>
+
+    <!-- Checkout Form -->
+    <section class="checkout-form">
+      <h2>Checkout</h2>
+      <form id="checkoutForm">
+        <input type="text" id="name" placeholder="Full Name" required>
+        <input type="text" id="phone" placeholder="Phone Number" required>
+        <input type="text" id="village" placeholder="Village">
+        <input type="text" id="po" placeholder="Post Office">
+        <input type="text" id="ps" placeholder="Police Station">
+        <input type="text" id="pin" placeholder="PIN Code">
+        <button type="submit">Place Order</button>
+      </form>
+      <p id="successMsg" class="success"></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 Pharmacy Store | All Rights Reserved</p>
+  </footer>
+  <script>
+    // Supabase Setup
+const SUPABASE_URL = "https://sellietbjcoxjbxfvpff.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbGxpZXRiamNveGpieGZ2cGZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MzI2NTcsImV4cCI6MjA3MzAwODY1N30.dCq6MTZn46aPQNP6AgAkraczT4qCgaflikd1vqRRlCc";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+// Display Cart
+function displayCart() {
+  const container = document.getElementById("cart-list");
+  const totalPriceEl = document.getElementById("total-price");
+  container.innerHTML = "";
+
+  if (cart.length === 0) {
+    container.innerHTML = "<p>Your cart is empty.</p>";
+    totalPriceEl.textContent = "Total: ₹0";
+    return;
+  }
+
+  let total = 0;
+  cart.forEach((item, index) => {
+    total += item.price * item.qty;
+
+    const card = document.createElement("div");
+    card.className = "medicine-card";
+    card.innerHTML = `
+      <h3>${item.name}</h3>
+      <p>Price: ₹${item.price}</p>
+      <p>Quantity: ${item.qty}</p>
+      <button onclick="removeFromCart(${index})">Remove</button>
+    `;
+    container.appendChild(card);
+  });
+
+  totalPriceEl.textContent = "Total: ₹" + total;
+}
+
+// Remove item
+function removeFromCart(index) {
+  cart.splice(index, 1);
+  localStorage.setItem("cart", JSON.stringify(cart));
+  displayCart();
+}
+
+// Checkout Form Submit
+document.getElementById("checkoutForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (cart.length === 0) {
+    alert("Cart is empty!");
+    return;
+  }
+
+  const user_name = document.getElementById("name").value;
+  const phone = document.getElementById("phone").value;
+  const village = document.getElementById("village").value;
+  const po = document.getElementById("po").value;
+  const ps = document.getElementById("ps").value;
+  const pin = document.getElementById("pin").value;
+
+  const total_amount = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+
+  try {
+    // 1️⃣ Insert into orders table
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .insert([{ user_name, phone, village, po, ps, pin, total_amount, status: "pending" }])
+      .select()
+      .single();
+
+    if (orderError) throw orderError;
+
+    // 2️⃣ Insert order items
+    const itemsToInsert = cart.map(item => ({
+      order_id: order.id,
+      medicine_id: item.id,
+      quantity: item.qty,
+      price: item.price
+    }));
+
+    const { error: itemsError } = await supabase
+      .from("order_items")
+      .insert(itemsToInsert);
+
+    if (itemsError) throw itemsError;
+
+    // ✅ Clear cart & redirect
+    localStorage.removeItem("cart");
+    window.location.href = "/pharmasist /user/order successful.html";
+
+  } catch (err) {
+    console.error("Error placing order:", err);
+    alert("❌ Error placing order! Check console.");
+  }
+});
+
+// On Load
+document.addEventListener("DOMContentLoaded", displayCart);
+
+  </script>
+</body>
+</html>

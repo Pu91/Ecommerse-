@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Doctor Appointment | Pharmacy Store</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .form-container {
+  max-width: 500px;
+  margin: 30px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.form-container h2 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+.form-container label {
+  display: block;
+  margin: 10px 0 5px;
+  font-weight: 600;
+}
+.form-container input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+.form-container button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  background: #007bff;
+  border: none;
+  color: white;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.form-container button:hover {
+  background: #0056b3;
+}
+.success {
+  color: green;
+  text-align: center;
+  margin-top: 15px;
+}
+
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <h1>Pharmacy Store</h1>
+    <nav>
+      <a href="/pharmasist /user/index.html">Home</a>
+      <a href="/pharmasist /user/cart.html">Cart</a>
+      <a href="/pharmasist /user/appointment.html" class="active">Appointment</a>
+    </nav>
+  </header>
+
+  <!-- Appointment Form -->
+  <main class="form-container">
+    <h2>Book Doctor Appointment</h2>
+    <form id="appointmentForm">
+      <label>Full Name</label>
+      <input type="text" id="name" placeholder="Enter your name" required>
+
+      <label>Phone</label>
+      <input type="text" id="phone" placeholder="Enter phone number" required>
+
+      <label>Village</label>
+      <input type="text" id="village" placeholder="Enter village" required>
+
+      <label>Post Office (PO)</label>
+      <input type="text" id="po" placeholder="Enter PO" required>
+
+      <label>Police Station (PS)</label>
+      <input type="text" id="ps" placeholder="Enter PS" required>
+
+      <label>PIN Code</label>
+      <input type="text" id="pin" placeholder="Enter PIN code" required>
+
+      <label>Doctor Name</label>
+      <input type="text" id="doctor" placeholder="Enter doctor name" required>
+
+      <button type="submit">Book Appointment</button>
+    </form>
+    <p id="successMsg" class="success"></p>
+  </main>
+
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="appointment.js"></script>
+  <script>
+    // Supabase Setup
+const SUPABASE_URL = "https://sellietbjcoxjbxfvpff.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbGxpZXRiamNveGpieGZ2cGZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MzI2NTcsImV4cCI6MjA3MzAwODY1N30.dCq6MTZn46aPQNP6AgAkraczT4qCgaflikd1vqRRlCc";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const form = document.getElementById("appointmentForm");
+const successMsg = document.getElementById("successMsg");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("name").value;
+  const phone = document.getElementById("phone").value;
+  const village = document.getElementById("village").value;
+  const po = document.getElementById("po").value;
+  const ps = document.getElementById("ps").value;
+  const pin = document.getElementById("pin").value;
+  const doctor = document.getElementById("doctor").value;
+
+  const { data, error } = await supabase
+    .from("appointments")
+    .insert([{ name, phone, village, po, ps, pin, doctor }]);
+
+  if (error) {
+    successMsg.textContent = "❌ Failed to book appointment!";
+    successMsg.style.color = "red";
+    console.error(error);
+  } else {
+    successMsg.textContent = "✅ Appointment booked successfully!";
+    form.reset();
+  }
+});
+
+  </script>
+</body>
+</html>

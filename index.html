@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pharmacy Store</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Supabase -->
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <style>
+    /* Basic Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f8f9fa;
+  color: #333;
+}
+
+/* Header */
+header {
+  background: #2d6cdf;
+  color: #fff;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+header h1 {
+  font-size: 20px;
+}
+
+header input {
+  padding: 5px;
+  border-radius: 5px;
+  border: none;
+  width: 200px;
+}
+
+header nav a {
+  margin-left: 15px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* Banner */
+.banner {
+  text-align: center;
+  padding: 30px;
+  background: #eaf0ff;
+}
+
+/* Medicine List */
+main {
+  padding: 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+}
+
+.medicine-card {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  padding: 15px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.medicine-card img {
+  max-width: 100px;
+  margin-bottom: 10px;
+}
+
+.medicine-card button {
+  background: #2d6cdf;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.medicine-card button:hover {
+  background: #1e4fb8;
+}
+
+/* Footer */
+footer {
+  background: #2d6cdf;
+  color: #fff;
+  text-align: center;
+  padding: 10px;
+  margin-top: 20px;
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- Header/Navbar -->
+  <header>
+    <h1>Pharmacy Store</h1>
+    <input type="text" placeholder="Search medicines...">
+    <nav>
+      <a href="/pharmasist /user/index.html">Home</a>
+      <a href="/pharmasist /user/cart.html">Cart</a>
+      <a href="/pharmasist /user/appointment.html">Appointments</a>
+    </nav>
+  </header>
+
+  <!-- Banner -->
+  <section class="banner">
+    <h2>Welcome to our Online Medical Shop</h2>
+    <p>Buy your medicines easily and book doctor appointments.</p>
+  </section>
+
+  <!-- Medicine List -->
+  <main>
+    <h2>Available Medicines</h2>
+    <div id="medicine-list" class="grid"></div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 Pharmacy Store | All Rights Reserved</p>
+  </footer>
+  <script>
+    // Supabase Client Setup
+const SUPABASE_URL = "https://sellietbjcoxjbxfvpff.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbGxpZXRiamNveGpieGZ2cGZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MzI2NTcsImV4cCI6MjA3MzAwODY1N30.dCq6MTZn46aPQNP6AgAkraczT4qCgaflikd1vqRRlCc"; 
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let allMedicines = []; // সব medicine এখানে রাখব
+
+// Load Medicines
+async function loadMedicines() {
+  const { data, error } = await supabase
+    .from("medicines")
+    .select("*");
+
+  if (error) {
+    console.error("Error loading medicines:", error);
+    return;
+  }
+
+  allMedicines = data; // সব medicine save করলাম
+  displayMedicines(allMedicines);
+}
+
+// Display medicines in HTML
+function displayMedicines(medicines) {
+  const container = document.getElementById("medicine-list");
+  container.innerHTML = "";
+
+  if (medicines.length === 0) {
+    container.innerHTML = "<p>No medicines found.</p>";
+    return;
+  }
+
+  medicines.forEach((med) => {
+    const card = document.createElement("div");
+    card.className = "medicine-card";
+    card.innerHTML = `
+      <img src="${med.image_url || 'https://via.placeholder.com/100'}" alt="${med.name}">
+      <h3>${med.name}</h3>
+      <p>Price: ₹${med.price}</p>
+      <p>Stock: ${med.stock}</p>
+      <button onclick="addToCart('${med.id}', '${med.name}', ${med.price})">Add to Cart</button>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// Search Function
+function searchMedicines(query) {
+  const filtered = allMedicines.filter(med =>
+    med.name.toLowerCase().includes(query.toLowerCase())
+  );
+  displayMedicines(filtered);
+}
+
+// Add to Cart (localStorage use)
+function addToCart(id, name, price) {
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  cart.push({ id, name, price, qty: 1 });
+  localStorage.setItem("cart", JSON.stringify(cart));
+  alert(name + " added to cart!");
+}
+
+// On Page Load
+document.addEventListener("DOMContentLoaded", () => {
+  loadMedicines();
+
+  // Searchbar Event
+  const searchInput = document.querySelector("header input");
+  searchInput.addEventListener("input", (e) => {
+    searchMedicines(e.target.value);
+  });
+});
+
+  </script>
+</body>
+</html>
